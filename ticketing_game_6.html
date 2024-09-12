@@ -1,0 +1,125 @@
+<h1 style="text-align: center;">티켓팅 연습 게임 by 티켓베이</h1> <!-- 텍스트 중앙 정렬 -->
+
+<!-- 이미지 클릭 시 링크로 이동하도록 추가 -->
+<a href="https://docs.google.com/spreadsheets/d/11laZK5DD7qdyScZ7MxolMjFwTL7aNeC6n3MvixHay10/edit?gid=1640163547#gid=1640163547" target="_blank">
+    <!-- 이미지 크기 25%, 중앙 정렬 (원래 50%의 50%) -->
+    <img id="gameImage" src="https://m.ticketbay.co.kr/attach/og/ca5d7-8f2-44b7-99c-05bc0110d.png" alt="게임 이미지" style="display: block; margin: 0 auto; width: 25%;" />
+</a>
+
+<br><br> <!-- 두 줄 띄우기 -->
+
+<!-- 버튼 스타일 추가: 중앙 정렬 및 크기 조정 -->
+<button id="startButton" style="display: block; margin: 0 auto; padding: 15px 30px; font-size: 1.5em;">게임 시작</button> <!-- 버튼 크기 50% 증가, 중앙 정렬 -->
+
+<div id="gameArea"></div> <!-- 게임 영역 -->
+
+<div id="resultArea" style="text-align: center; display: none;"></div> <!-- 결과 표시 영역, 중앙 정렬 -->
+
+<script>
+    const startButton = document.getElementById('startButton'); // 시작 버튼 요소
+    const gameArea = document.getElementById('gameArea'); // 게임 영역 요소
+    const resultArea = document.getElementById('resultArea'); // 결과 영역 요소
+
+    let clickTimes = []; // 클릭 시간을 저장할 배열
+    let currentBoxIndex = 0; // 현재 박스 인덱스
+
+    // 좌석 배열 생성 (200개)
+    const seats = Array.from({ length: 200 }, () => document.createElement('div'));
+
+    // 게임 시작 함수
+    startButton.addEventListener('click', () => {
+        startGame(); // 게임 시작
+    });
+
+    function startGame() {
+        // 게임 상태 초기화
+        clickTimes = []; // 클릭 시간을 초기화합니다
+        currentBoxIndex = 0; // 현재 박스 인덱스 초기화
+
+        // 게임 영역 초기화
+        gameArea.innerHTML = ''; // 기존 게임 영역 내용 제거
+        gameArea.style.display = 'block'; // 게임 영역 표시
+
+        // 좌석 생성 및 초기화
+        seats.forEach(seat => {
+            seat.classList.add('seat'); // 좌석 클래스 추가
+            seat.classList.remove('highlight'); // 강조 제거
+            gameArea.appendChild(seat); // 게임 영역에 좌석 추가
+        });
+
+        // 첫 번째 박스 표시
+        showNextBox(); // 다음 박스 표시
+    }
+
+    function showNextBox() {
+        // 박스가 10개 클릭될 때까지 실행
+        if (currentBoxIndex < 10) {
+            const seatIndex = Math.floor(Math.random() * seats.length); // 랜덤 좌석 선택
+            const selectedSeat = seats[seatIndex];
+            selectedSeat.classList.add('highlight'); // 보라색 박스 강조
+
+            const startTime = new Date().getTime(); // 클릭 시작 시간 기록
+
+            selectedSeat.addEventListener('click', () => {
+                const endTime = new Date().getTime(); // 클릭 종료 시간 기록
+                const clickTime = endTime - startTime; // 클릭 시간 계산
+                clickTimes.push(clickTime); // 클릭 시간을 배열에 저장
+
+                selectedSeat.classList.remove('highlight'); // 강조 제거
+                currentBoxIndex++; // 박스 인덱스 증가
+                showNextBox(); // 다음 박스 표시
+            }, { once: true }); // 한번만 클릭 이벤트 추가
+        } else {
+            endGame(); // 게임 종료
+        }
+    }
+
+    function endGame() {
+        gameArea.style.display = 'none'; // 게임 영역 숨기기
+        resultArea.style.display = 'block'; // 결과 영역 보이기
+
+        // 결과 계산
+        const fastest = Math.min(...clickTimes) / 1000; // ms를 초로 변환
+        const slowest = Math.max(...clickTimes) / 1000; // ms를 초로 변환
+        const average = clickTimes.reduce((a, b) => a + b, 0) / clickTimes.length / 1000; // ms를 초로 변환
+
+        // 결과 출력
+        resultArea.innerHTML = `
+            <h2>게임 종료!</h2>
+            <p>가장 빠른 클릭 반응 속도: ${fastest.toFixed(2)} 초</p>
+            <p>가장 느린 클릭 반응 속도: ${slowest.toFixed(2)} 초</p>
+            <p>평균 클릭 반응 속도: ${average.toFixed(2)} 초</p>
+            <br><br> <!-- 두 줄 띄우기 -->
+        `;
+
+        // 반응 속도에 따른 메시지 출력
+        if (fastest < 1) {
+            resultArea.innerHTML += `<p>손가락 좀 쓸 줄 아시는군요?!😆😆</p>`; // 빠른 반응에 대한 메시지
+        } else {
+            resultArea.innerHTML += `<p>공연 보고싶으시면, 분발하셔야겠어요..! 하지만, 걱정마세요! 티켓베이가 있어요 😉</p>`; // 느린 반응에 대한 메시지
+        }
+    }
+</script>
+
+<style>
+    .seat {
+        width: 50px;
+        height: 50px;
+        display: inline-block;
+        border: 1px solid #000;
+        margin: 2px;
+        text-align: center;
+        line-height: 50px;
+    }
+    
+    .highlight {
+        background-color: purple; /* 보라색 강조 */
+    }
+
+    /* 게임 영역을 10개 가로, 20개 세로로 설정 */
+    #gameArea {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr); /* 10개 열 설정 */
+        grid-template-rows: repeat(20, 50px); /* 20개 행 설정 */
+    }
+</style>
