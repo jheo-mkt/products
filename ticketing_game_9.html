@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>티켓팅 연습 게임</title>
+    <style>
+        .seat {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            border: 1px solid #000;
+            margin: 2px;
+            text-align: center;
+            line-height: 50px;
+        }
+        
+        .highlight {
+            background-color: purple; /* 보라색 강조 */
+        }
+
+        /* 게임 영역을 10개 가로, 20개 세로로 설정 */
+        #gameArea {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr); /* 10개 열 설정 */
+            grid-template-rows: repeat(20, 50px); /* 20개 행 설정 */
+        }
+
+        /* 버튼 스타일 */
+        .button-container {
+            text-align: center; /* 버튼을 중앙에 배치 */
+            margin: 20px 0; /* 위아래 여백 */
+        }
+
+        #shareButton {
+            padding: 15px 30px; /* 버튼 패딩 */
+            font-size: 1.5em; /* 버튼 폰트 크기 */
+            margin-left: 20px; /* 게임 시작 버튼과의 간격 */
+        }
+
+        .small-text {
+            text-align: center; /* 작은 글씨 중앙 정렬 */
+            font-size: 0.8em; /* 작은 글씨 크기 */
+            color: #555; /* 글씨 색상 */
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">티켓팅 연습 게임 by 티켓베이</h1>
+    <div class="small-text">
+        <p>포도알 잡기 연습하시고, 티켓팅 꼭 성공하세요!</p>
+        <p>티켓베이가 응원합니다! :)</p>
+    </div>
+    <a href="https://docs.google.com/spreadsheets/d/11laZK5DD7qdyScZ7MxolMjFwTL7aNeC6n3MvixHay10/edit?gid=1640163547#gid=1640163547" target="_blank">
+        <img id="gameImage" src="https://m.ticketbay.co.kr/attach/og/ca5d7-8f2-44b7-99c-05bc0110d.png" alt="게임 이미지" style="display: block; margin: 0 auto; width: 25%;" />
+    </a>
+    <br><br>
+    
+    <div class="button-container">
+        <button id="startButton" style="padding: 15px 30px; font-size: 1.5em;">게임 시작</button>
+        <button id="shareButton">공유하기</button> <!-- 공유하기 버튼 추가 -->
+    </div>
+
+    <div id="gameArea"></div>
+    <div id="resultArea" style="text-align: center; display: none;"></div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const shareButton = document.getElementById('shareButton'); // 공유하기 버튼 요소
+        const gameArea = document.getElementById('gameArea');
+        const resultArea = document.getElementById('resultArea');
+
+        let clickTimes = [];
+        let currentBoxIndex = 0;
+
+        const seats = Array.from({ length: 200 }, () => document.createElement('div'));
+
+        startButton.addEventListener('click', () => {
+            startGame();
+        });
+
+        shareButton.addEventListener('click', () => {
+            copyToClipboard('https://www.ticketbay.co.kr'); // 링크 복사 함수 호출
+        });
+
+        function startGame() {
+            clickTimes = [];
+            currentBoxIndex = 0;
+            gameArea.innerHTML = '';
+            gameArea.style.display = 'block';
+            seats.forEach(seat => {
+                seat.classList.add('seat');
+                seat.classList.remove('highlight');
+                gameArea.appendChild(seat);
+            });
+            showNextBox();
+        }
+
+        function showNextBox() {
+            if (currentBoxIndex < 10) {
+                const seatIndex = Math.floor(Math.random() * seats.length);
+                const selectedSeat = seats[seatIndex];
+                selectedSeat.classList.add('highlight');
+                const startTime = new Date().getTime();
+
+                selectedSeat.addEventListener('click', () => {
+                    const endTime = new Date().getTime();
+                    const clickTime = endTime - startTime;
+                    clickTimes.push(clickTime);
+                    selectedSeat.classList.remove('highlight');
+                    currentBoxIndex++;
+                    showNextBox();
+                }, { once: true });
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameArea.style.display = 'none';
+            resultArea.style.display = 'block';
+            const fastest = Math.min(...clickTimes) / 1000;
+            const slowest = Math.max(...clickTimes) / 1000;
+            const average = clickTimes.reduce((a, b) => a + b, 0) / clickTimes.length / 1000;
+
+            resultArea.innerHTML = `
+                <h2>게임 종료!</h2>
+                <p>가장 빠른 클릭 반응 속도: ${fastest.toFixed(2)} 초</p>
+                <p>가장 느린 클릭 반응 속도: ${slowest.toFixed(2)} 초</p>
+                <p>평균 클릭 반응 속도: ${average.toFixed(2)} 초</p>
+                <br><br>
+            `;
+
+            if (fastest < 1) {
+                resultArea.innerHTML += `<p>손가락 좀 쓸 줄 아시는군요?!</p>`;
+            } else {
+                resultArea.innerHTML += `<p>공연 보고싶으시면, 분발하셔야겠어요..!😆 하지만, 걱정마세요! 티켓베이가 있어요 😉</p>`;
+            }
+        }
+
+        function copyToClipboard(text) {
+            // 클립보드에 텍스트 복사하는 함수
+            navigator.clipboard.writeText(text).then(() => {
+                alert('공유링크가 복사되었습니다!'); // 복사 완료 메시지
+            }, (err) => {
+                console.error('클립보드 복사 실패:', err);
+            });
+        }
+    </script>
+</body>
+</html>
